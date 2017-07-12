@@ -141,6 +141,18 @@ public:
     }
   }
 
+  /* @brief Function to write raw data to device
+   *
+   * @param data Data to send to device
+   */
+  void write_raw(std::string data)
+  {
+    std::string command = "c_dev[" + std::to_string(idx) + "].write_raw('"
+      + cmd + "')";
+
+    PyRun_SimpleString(command.c_str());
+  }
+
   /* @brief Function to write serial commands to device
    *
    * @param cmd Command to send to device
@@ -153,14 +165,43 @@ public:
     PyRun_SimpleString(command.c_str());
   }
 
-  /* @brief Function to read from serial buffer of device
+  /* @brief Function to read raw data from serial buffer of device
    *
-   * @param discard Boolean indicating whether or not the the first line, which
-   *                typically contains the instruction, should be discarded.
-   *                Defaults to false.
    * @return String containing raw device buffer contents
    */
-  std::string read(bool discard=false)
+  std::string read_raw()
+  {
+    std::string temp = "";
+    std::string response;
+    std::string command = "temp = c_dev[" + std::to_string(idx)
+                                                      + "].read_raw().rstrip()";
+
+    PyObject* py_resp = PyRun_String(command.c_str(), Py_single_input,
+                                     py_context, py_context);
+    PyObject* py_temp = PyObject_GetAttrString(py_main, "temp");
+
+    response = PyString_AsString(PyObject_Str(py_temp));
+
+    do
+    {
+      response += (std::string)"\n" + temp;
+
+      py_resp = PyRun_String(command.c_str(), Py_single_input,
+                             py_context, py_context);
+      py_temp = PyObject_GetAttrString(py_main, "temp");
+
+      temp = PyString_AsString(PyObject_Str(py_temp));
+
+    } while (!temp.empty());
+
+    return response;
+  }
+
+  /* @brief Function to read from serial buffer of device
+   *
+   * @return String containing raw device buffer contents
+   */
+  std::string read()
   {
     std::string temp = "";
     std::string response;
@@ -171,11 +212,11 @@ public:
                                      py_context, py_context);
     PyObject* py_temp = PyObject_GetAttrString(py_main, "temp");
 
-    response = discard ? "" : PyString_AsString(PyObject_Str(py_temp));
+    response = PyString_AsString(PyObject_Str(py_temp));
 
     do
     {
-      response += response.empty() ? temp : (std::string)"\n" + temp;
+      response += (std::string)"\n" + temp;
 
       py_resp = PyRun_String(command.c_str(), Py_single_input,
                              py_context, py_context);
@@ -191,20 +232,14 @@ public:
   /* @brief Convenience function to write a serial command and read the result
    *
    * @param cmd Command to send to device
-   * @param discard Boolean indicating whether or not the the first line, which
-   *                typically contains the instruction, should be discarded.
-   *                Defaults to true for queries.
    * @return String containing device buffer contents
    */
-  std::string query(std::string command, bool discard=true)
+  std::string query(std::string command)
   {
     write(command);
 
-    return read(discard);
+    return read();
   }
-
-  // TODO: implement other encodings and *_raw functions to enable different
-  // protocols
 };
 
 } // namespace cyrial
