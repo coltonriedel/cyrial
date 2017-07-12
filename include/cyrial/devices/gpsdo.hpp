@@ -4,14 +4,14 @@
 #include <array>
 #include <string>
 
-#include "scpi_device.hpp"
+#include "scpi.hpp"
 
 namespace cyrial
 {
 
 enum sync_source { GPS, EXT, AUTO };
 
-std::array<size_t> gpsdo_baud[5] = { 9600, 19200, 38400, 57600, 115200 };
+std::array<size_t, 5> gpsdo_baud{ 9600, 19200, 38400, 57600, 115200 };
 
 /* @class gpsdo_device
  *
@@ -398,9 +398,9 @@ public:
    */
   void syst_comm_ser_echo(bool state)
   {
-    string command = "SYST:COMM:SER:ECHO " + state ? "ON" : "OFF";
+    std::string command = "SYST:COMM:SER:ECHO " + state ? "ON" : "OFF";
 
-    return write(command.c_str());
+    write(command.c_str());
   }
 
   /* @brief Function to check of command prompt ("scpi>") is enabled
@@ -421,9 +421,9 @@ public:
    */
   void syst_comm_ser_pro(bool state)
   {
-    string command = "SYST:COMM:SER:PRO " + state ? "ON" : "OFF";
+    std::string command = "SYST:COMM:SER:PRO " + state ? "ON" : "OFF";
 
-    return query(command.c_str());
+    write(command.c_str());
   }
 
   /* @brief Function to query current baud rate setting for device
@@ -496,7 +496,7 @@ public:
   void serv_efcs(double value)
   {
     if (value >= 0.0 && value <= 500.0)
-      write("SERV:EFCS " + std:to_string(value));
+      write("SERV:EFCS " + std::to_string(value));
   }
 
   /* @brief Function to set the low pass filter effectiveness of the DAC. Values
@@ -507,7 +507,7 @@ public:
   void serv_efcd(double value)
   {
     if (value >= 0.0 && value <= 4000.0)
-      write("SERV:EFCD " + std:to_string(value));
+      write("SERV:EFCD " + std::to_string(value));
   }
 
   /* @brief Function to set the coefficient corresponding to the temperature
@@ -554,7 +554,7 @@ public:
    */
   std::string serv_1pps()
   {
-    query("SERV:1PPS " + std::to_string(offset));
+    query("SERV:1PPS?");
   }
 
   /* @brief Function to set the GPSDO's offset to UTC in 16.7ns increments

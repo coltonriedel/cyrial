@@ -148,7 +148,7 @@ public:
   void write_raw(std::string data)
   {
     std::string command = "c_dev[" + std::to_string(idx) + "].write_raw('"
-      + cmd + "')";
+      + data + "')";
 
     PyRun_SimpleString(command.c_str());
   }
