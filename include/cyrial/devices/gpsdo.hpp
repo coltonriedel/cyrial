@@ -19,7 +19,7 @@ std::array<size_t, 5> gpsdo_baud{ 9600, 19200, 38400, 57600, 115200 };
  *
  * Implemented commands are influenced by the interfaces of Jackson Labs brand
  * GPSDO's, including:
- *   - FireFly IIA OXCO
+ *   - FireFly IA OCXO
  *   - GPSTCXO
  *
  * TODO: ordering should be maintained for multiple messages, but scheduled
