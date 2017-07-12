@@ -45,15 +45,6 @@ public:
     return query("GPS?");
   }
 
-  /* @brief Function to query information on the satellite constellation
-   *
-   * @return std::string Information on the satellite constellation
-   */
-  std::string gps_sat()
-  {
-    return query("GPS:SAT");
-  }
-
   /* @brief Function to query the number of tracked satellites
    *
    * TODO: convert to size_t
@@ -153,16 +144,16 @@ public:
     return query("PTIME?");
   }
 
-  /* @brief Function to get the local timezone
-   *
-   * TODO: return a timezone object
-   *
-   * @return std::string The timezone of the receiver
-   */
-  std::string ptim_tzon()
-  {
-    return query("PTIM:TZON?");
-  }
+  //Not supported on FireFly IA
+  //
+  ///* @brief Function to get the local timezone
+  // *
+  // * @return std::string The timezone of the receiver
+  // */
+  //std::string ptim_tzon()
+  //{
+  //  return query("PTIM:TZON?");
+  //}
 
   /* @brief Function to query the calendar date (UTC)
    *
@@ -245,9 +236,9 @@ public:
    *
    * @return std::string
    */
-  std::string sync_sour()
+  std::string sync_sour_state()
   {
-    return query("SYNC:SOUR?");
+    return query("SYNC:SOUR:STATE?");
   }
 
   /* @brief Function to query the length of the most recent holdover duration
