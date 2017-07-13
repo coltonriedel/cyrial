@@ -240,6 +240,23 @@ public:
 
     return read();
   }
+
+  /* @brief Function to eat lines off the serial buffer of the device, useful
+   *        when issuing commands which will be echoed but do not produce a
+   *        response
+   *
+   * TODO: could be much more intelligent
+   *
+   * @param lines The number of lines to eat, defaults to 2
+   */
+  void eat(size_t lines=2)
+  {
+    std::string command = "temp = c_dev[" + std::to_string(idx) + "].read()";
+
+    for (size_t i = 0; i < lines; ++i)
+      PyRun_SimpleString(command.c_str());
+  }
+
 };
 
 } // namespace cyrial
