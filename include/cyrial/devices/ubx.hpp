@@ -23,6 +23,25 @@ class ubx_device
 
   uint8_t c_mon = 0x0a; // MON message class
 
+  /* @bring Function to compute the checksum (XOR) of NMEA messages
+   *
+   * @param The message to compute the checksum on, containing both '$' and '*'
+   */
+  void add_pubx_checksum(std::string &msg)
+  {
+    uint8_t check = 0x00;
+    std::ostringstream checksum;
+
+    // Start at 1 to skip '$', stop at (n - 1) to skip '*'
+    for (size_t i = 1; i < msg.length() - 1; ++i)
+      check ^= (uint8_t)msg[i];
+
+    checksum << std::setw(2) << std::setfill('0') << std::hex << std::uppercase
+      << (int)check;
+
+    msg += checksum.str();
+  }
+
   /* @brief Function to compute the Fletcher checksums of an UBX message and
    *        append them to the message before returning
    *
@@ -69,6 +88,23 @@ public:
     comm->set_timeout(100);
     comm->set_baud(9600);
   }
+
+  // PUBX Messages
+
+  /*
+   */
+  void pubx_rate(std::string nmea_type, size_t rate)
+  {
+    std::string command = "$PUBX,40," + nmea_type + ",0," + std::to_string(rate)
+      + ",0,0,0,0*";
+
+    add_pubx_checksum(command);
+
+    std::cout << command << std::endl;
+    comm->write(command);
+  }
+
+  // UBX Messages
 
   /* @brief Function to get the results of the UBX-MON-VER command
    *
