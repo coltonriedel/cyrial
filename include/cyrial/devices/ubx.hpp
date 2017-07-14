@@ -100,7 +100,6 @@ public:
 
     add_pubx_checksum(command);
 
-    std::cout << command << std::endl;
     comm->write(command);
   }
 
