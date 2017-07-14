@@ -57,23 +57,6 @@ public:
     PyObject_SetAttrString(py_device, "timeout", py_default_timeout);
     Py_DECREF(py_default_timeout);
 
-    /*
-     * This should be moved to SCPI devices
-     *
-    // Set baud rate
-    PyObject* py_default_baud_rate = PyInt_FromLong(115200);
-    PyObject_SetAttrString(py_device, "baud_rate", py_default_baud_rate);
-    Py_DECREF(py_default_baud_rate);
-     */
-
-    /*
-     * This is a SCPI specific command and needs to be reorganized to work
-     * with UBX protocol devices
-     *
-    // Get and store the device's common name
-    name = query("*IDN?", true);
-     */
-
     // Get and store the interface on which the device is connected
     PyObject* py_dev_loc = PyObject_GetAttrString(py_device, "resource_name");
     location = PyString_AsString(py_dev_loc);
@@ -184,7 +167,7 @@ public:
 
     do
     {
-      response += (std::string)"\n" + temp;
+      response += temp;
 
       py_resp = PyRun_String(command.c_str(), Py_single_input,
                              py_context, py_context);

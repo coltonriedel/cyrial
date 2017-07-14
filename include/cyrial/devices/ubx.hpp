@@ -27,9 +27,8 @@ class ubx_device
    *        append them to the message before returning
    *
    * @param A vector of bytes (including sync bytes) representing an UBX message
-   * @return The UBX message with A and B checksums appended
    */
-  std::vector<uint8_t> add_ubx_checksum(std::vector<uint8_t> msg)
+  void add_ubx_checksum(std::vector<uint8_t> &msg)
   {
     uint8_t check_a = 0;
     uint8_t check_b = 0;
@@ -40,8 +39,6 @@ class ubx_device
 
     msg.push_back(check_a);
     msg.push_back(check_b);
-
-    return msg;
   }
 
   /* @brief Function to convert a vector of bytes representing an UBX message
@@ -50,7 +47,7 @@ class ubx_device
    * @param A vector of bytes representing the contents of an UBX message
    * @return A string of escaped hex characters representing the message
    */
-  std::string escape_ubx_message(std::vector<uint8_t> msg)
+  std::string escape_ubx_message(std::vector<uint8_t> &msg)
   {
     std::ostringstream result;
 
@@ -88,7 +85,9 @@ public:
     std::vector<uint8_t> packet = { s_mu, s_b, c_mon, 0x04 /* ID */,
                                     length_a, length_b };
 
-    return comm->query_raw(escape_ubx_message(add_ubx_checksum(packet)));
+    add_ubx_checksum(packet);
+
+    return comm->query_raw(escape_ubx_message(packet));
   }
 };
 

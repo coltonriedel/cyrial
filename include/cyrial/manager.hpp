@@ -31,7 +31,7 @@ class manager
   PyObject* py_resource_manager;
   PyObject* py_device_list;
 
-  std::vector<std::shared_ptr<interface>> port;
+  std::vector<std::shared_ptr<interface>> ports;
 
 public:
   manager()
@@ -96,7 +96,7 @@ public:
 
       PyObject* py_device = PyList_GetItem(py_device_list, i);
 
-      port.push_back(std::make_shared<interface>(i, py_device, py_context,
+      ports.push_back(std::make_shared<interface>(i, py_device, py_context,
                                                                       py_main));
     }
   }
@@ -159,7 +159,7 @@ public:
 
       PyObject* py_device = PyList_GetItem(py_device_list, i);
 
-      port.push_back(std::make_shared<interface>(i, py_device, py_context,
+      ports.push_back(std::make_shared<interface>(i, py_device, py_context,
                                                                       py_main));
     }
   }
@@ -170,16 +170,16 @@ public:
    */
   size_t num_dev()
   {
-    return port.size();
+    return ports.size();
   }
 
-  /* @brief Function to return a shared_ptr to a connected port
+  /* @brief Function to return a shared_ptr to a connected ports
    *
    * @return shared_ptr Pointer to a connected port
    */
   std::shared_ptr<interface> dev(size_t number)
   {
-    return port[number];
+    return ports[number];
   }
 
   ~manager()
