@@ -4,7 +4,7 @@
 #include <array>
 #include <string>
 
-#include "../serial_device.hpp"
+#include "../interface.hpp"
 
 namespace cyrial
 {
@@ -16,29 +16,80 @@ namespace cyrial
  */
 class ubx_device
 {
-  size_t calculate_checksum(const char* msg)
+  std::shared_ptr<interface> comm;
+
+  uint8_t s_mu = 0xb5; // μ sync character
+  uint8_t s_b  = 0x62; // b sync character
+
+  uint8_t c_mon = 0x0a; // MON message class
+
+  /* @brief Function to compute the Fletcher checksums of an UBX message and
+   *        append them to the message before returning
+   *
+   * @param A vector of bytes (including sync bytes) representing an UBX message
+   * @return The UBX message with A and B checksums appended
+   */
+  std::vector<uint8_t> add_ubx_checksum(std::vector<uint8_t> msg)
   {
-    size_t cksm = 0;
+    uint8_t check_a = 0;
+    uint8_t check_b = 0;
 
-    for (size_t i = 0; msg[i]; ++i)
-      cksm ^= (unsigned char)msg[i];
+    // Start at 2 to skip sync characters
+    for (size_t i = 2; i < msg.size(); ++i)
+      check_b += (check_a += msg[i]);
 
-    return cksm;
+    msg.push_back(check_a);
+    msg.push_back(check_b);
+
+    return msg;
   }
 
-  std::string encode_message(std::string msg)
+  /* @brief Function to convert a vector of bytes representing an UBX message
+   *        into a string containing hex escape characters
+   *
+   * @param A vector of bytes representing the contents of an UBX message
+   * @return A string of escaped hex characters representing the message
+   */
+  std::string escape_ubx_message(std::vector<uint8_t> msg)
   {
-    // convert to hex representation
-    return "";
-  }
+    std::ostringstream result;
 
-  std::string build_message(std::string msg)
-  {
-    return { "$" + encode_message(msg) + (std::string)"*"
-                                             + calculate_checksum(msg.c_str()) }
+    for (size_t i = 0; i < msg.size(); ++i)
+      result << "\\x"
+        << std::setw(2) << std::setfill('0') << std::hex << (int)msg[i];
+
+    return result.str();
+  }
 
 public:
-  // UBX functions
+  /* @brief Constructor for UBX device
+   *
+   * @param A shared_ptr to a communication interface
+   */
+  ubx_device(std::shared_ptr<interface> port)
+    : comm(port)
+  {
+    comm->set_timeout(100);
+    comm->set_baud(9600);
+  }
+
+  /* @brief Function to get the results of the UBX-MON-VER command
+   *
+   * UBX-MON-VER returns the currently running firmware version, hardware
+   * version, and any extensions to the firmware
+   *
+   * @return The output of the UBX-MON-VER command
+   */
+  std::string ubx_mon_ver()
+  {
+    uint8_t length_a = 0x00;  // UBX_MON_VER passes no parameters
+    uint8_t length_b = 0x00;  //    so the length is always 0
+
+    std::vector<uint8_t> packet = { s_mu, s_b, c_mon, 0x04 /* ID */,
+                                    length_a, length_b };
+
+    return comm->query_raw(escape_ubx_message(add_ubx_checksum(packet)));
+  }
 };
 
 } // namespace cyrial

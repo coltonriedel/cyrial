@@ -34,6 +34,17 @@ std::array<size_t, 5> gpsdo_baud{ 9600, 19200, 38400, 57600, 115200 };
 class gpsdo_device : public scpi_device
 {
 public:
+  /* @brief Constructor for gpsdo device
+   *
+   * @param A shared_ptr to a communication interface
+   */
+  gpsdo_device(std::shared_ptr<interface> port)
+    : scpi_device(port)
+  {
+    comm->set_timeout(100);
+    comm->set_baud(115200);
+  }
+
   /* @brief Function to query the configuration, position, speed, height, and
    *        other relevant data of the integrated GPS receiver
    *
@@ -42,7 +53,7 @@ public:
    */
   std::string gps()
   {
-    return query("GPS?");
+    return comm->query("GPS?");
   }
 
   /* @brief Function to query the number of tracked satellites
@@ -53,7 +64,7 @@ public:
    */
   std::string gps_sat_tra_coun()
   {
-    return query("GPS:SAT:TRA:COUN?");
+    return comm->query("GPS:SAT:TRA:COUN?");
   }
 
   /* @brief Function to query the number of SV's which should be visible per the
@@ -65,7 +76,7 @@ public:
    */
   std::string gps_sat_vis_coun()
   {
-    return query("GPS:SAT:VIS:COUN?");
+    return comm->query("GPS:SAT:VIS:COUN?");
   }
 
   /* @brief Function to instruct the GPSDO to transmit GPGGA NEMA messages at a
@@ -81,8 +92,8 @@ public:
   {
     if (freq <= 255)
     {
-      write("GPS:GPGGA " + std::to_string(freq));
-      eat();
+      comm->write("GPS:GPGGA " + std::to_string(freq));
+      comm->eat();
     }
   }
 
@@ -102,8 +113,8 @@ public:
   {
     if (freq <= 255)
     {
-      write("GPS:GGAST " + std::to_string(freq));
-      eat();
+      comm->write("GPS:GGAST " + std::to_string(freq));
+      comm->eat();
     }
   }
 
@@ -120,8 +131,8 @@ public:
   {
     if (freq <= 255)
     {
-      write("GPS:GPRMC " + std::to_string(freq));
-      eat();
+      comm->write("GPS:GPRMC " + std::to_string(freq));
+      comm->eat();
     }
   }
 
@@ -139,11 +150,10 @@ public:
   {
     if (freq <= 255)
     {
-      write("GPS:XYZSP " + std::to_string(freq));
-      eat();
+      comm->write("GPS:XYZSP " + std::to_string(freq));
+      comm->eat();
     }
   }
-
 
   /* @brief Function to return information about time, including date, time in
    *        UTC, timezone, and time shift between the GPSDO and GPS time
@@ -153,7 +163,7 @@ public:
    */
   std::string ptime()
   {
-    return query("PTIME?");
+    return comm->query("PTIME?");
   }
 
   //Not supported on FireFly IA
@@ -164,7 +174,7 @@ public:
   // */
   //std::string ptim_tzon()
   //{
-  //  return query("PTIM:TZON?");
+  //  return comm->query("PTIM:TZON?");
   //}
 
   /* @brief Function to query the calendar date (UTC)
@@ -175,7 +185,7 @@ public:
    */
   std::string ptim_date()
   {
-    return query("PTIM:DATE?");
+    return comm->query("PTIM:DATE?");
   }
 
   /* @brief Function to query the current time (UTC)
@@ -186,7 +196,7 @@ public:
    */
   std::string ptim_time()
   {
-    return query("PTIM:TIME?");
+    return comm->query("PTIM:TIME?");
   }
 
   /* @brief Function to query the current time (UTC) in a format suitable for
@@ -196,7 +206,7 @@ public:
    */
   std::string ptim_time_str()
   {
-    return query("PTIM:TIME:STR?");
+    return comm->query("PTIM:TIME:STR?");
   }
 
   /* @brief Function to query the shift in GPSDO time from GPS time (1E-10
@@ -210,7 +220,7 @@ public:
    */
   std::string ptim_tint()
   {
-    return query("PTIM:TINT?");
+    return comm->query("PTIM:TINT?");
   }
 
   /* @brief Function to query the status of the synchronization system,
@@ -222,7 +232,7 @@ public:
    */
   std::string sync()
   {
-    return query("SYNC?");
+    return comm->query("SYNC?");
   }
 
   /* @brief Function to set the 1 PPS source to be used for synchronization
@@ -236,9 +246,9 @@ public:
   {
     switch (source)
     {
-      case GPS:  write("SYNC:SOUR:MODE GPS" ); eat(); break;
-      case EXT:  write("SYNC:SOUR:MODE EXT" ); eat(); break;
-      case AUTO: write("SYNC:SOUR:MODE AUTO"); eat(); break;
+      case GPS:  comm->write("SYNC:SOUR:MODE GPS" ); comm->eat(); break;
+      case EXT:  comm->write("SYNC:SOUR:MODE EXT" ); comm->eat(); break;
+      case AUTO: comm->write("SYNC:SOUR:MODE AUTO"); comm->eat(); break;
     }
   }
 
@@ -250,7 +260,7 @@ public:
    */
   std::string sync_sour_state()
   {
-    return query("SYNC:SOUR:STATE?");
+    return comm->query("SYNC:SOUR:STATE?");
   }
 
   /* @brief Function to query the length of the most recent holdover duration
@@ -261,7 +271,7 @@ public:
    */
   std::string sync_hold_dur()
   {
-    return query("SYNC:HOLD:DUR?");
+    return comm->query("SYNC:HOLD:DUR?");
   }
 
   /* @brief Function to command the GPSDO to immediately enter holdover mode
@@ -269,8 +279,8 @@ public:
    */
   void sync_hold_init()
   {
-    write("SYNC:HOLD:INIT");
-    eat();
+    comm->write("SYNC:HOLD:INIT");
+    comm->eat();
   }
 
   /* @brief Function to command terminate a manual holdover condition which
@@ -278,8 +288,8 @@ public:
    */
   void sync_hold_rec_init()
   {
-    write("SYNC:HOLD:REC:INIT");
-    eat();
+    comm->write("SYNC:HOLD:REC:INIT");
+    comm->eat();
   }
 
   /* @brief Function to query the shift in GPSDO time from GPS time (1E-10
@@ -291,7 +301,7 @@ public:
    */
   std::string sync_tint()
   {
-    return query("SYNC:TINT?");
+    return comm->query("SYNC:TINT?");
   }
 
   /* @brief Function to command the GPSDO to synchronize with the reference
@@ -301,8 +311,8 @@ public:
    */
   void sync_imme()
   {
-    write("SYNC:IMME");
-    eat();
+    comm->write("SYNC:IMME");
+    comm->eat();
   }
 
   /* @brief Function to query the frequency error estimate
@@ -316,7 +326,7 @@ public:
    */
   std::string sync_fee()
   {
-    return query("SYNC:FEE?");
+    return comm->query("SYNC:FEE?");
   }
 
   /* @brief Function to query the lock status of the PLL which controls the
@@ -328,7 +338,7 @@ public:
    */
   std::string sync_lock()
   {
-    return query("SYNC:LOCK?");
+    return comm->query("SYNC:LOCK?");
   }
 
   /* @brief Function to query the health status of the GPSDO
@@ -351,7 +361,7 @@ public:
    */
   std::string sync_health()
   {
-    return query("SYNC:HEALTH?");
+    return comm->query("SYNC:HEALTH?");
   }
 
   /* @brief Function to query the electronic frequency control value in percent
@@ -362,7 +372,7 @@ public:
    */
   std::string diag_rosc_efc_rel()
   {
-    return query("DIAG:ROSC:EFC:REL?");
+    return comm->query("DIAG:ROSC:EFC:REL?");
   }
 
   /* @brief Function to query the electronic frequency control value in volts
@@ -374,7 +384,7 @@ public:
    */
   std::string diag_rosc_efc_abs()
   {
-    return query("DIAG:ROSC:EFC:ABS?");
+    return comm->query("DIAG:ROSC:EFC:ABS?");
   }
 
   /* @brief Function to query the system status
@@ -383,7 +393,7 @@ public:
    */
   std::string syst_stat()
   {
-    return query("SYST:STAT?");
+    return comm->query("SYST:STAT?");
   }
 
   /* @brief Function to check if command echo is enabled on RS-232
@@ -394,7 +404,7 @@ public:
    */
   std::string syst_comm_ser_echo()
   {
-    return query("SYST:COMM:SER:ECHO?");
+    return comm->query("SYST:COMM:SER:ECHO?");
   }
 
   /* @brief Function to enable or disable command echo on RS-232
@@ -406,8 +416,8 @@ public:
   {
     std::string command = "SYST:COMM:SER:ECHO " + state ? "ON" : "OFF";
 
-    write(command.c_str());
-    eat();
+    comm->write(command.c_str());
+    comm->eat();
   }
 
   /* @brief Function to check of command prompt ("scpi>") is enabled
@@ -418,7 +428,7 @@ public:
    */
   std::string syst_comm_ser_pro()
   {
-    return query("SYST:COMM:SER:PRO?");
+    return comm->query("SYST:COMM:SER:PRO?");
   }
 
   /* @brief Function to enable or disable command prompt on RS-232
@@ -430,8 +440,8 @@ public:
   {
     std::string command = "SYST:COMM:SER:PRO " + state ? "ON" : "OFF";
 
-    write(command.c_str());
-    eat();
+    comm->write(command.c_str());
+    comm->eat();
   }
 
   /* @brief Function to query current baud rate setting for device
@@ -442,7 +452,7 @@ public:
    */
   std::string syst_comm_ser_baud()
   {
-    return query("SYST:COMM:SER:BAUD?");
+    return comm->query("SYST:COMM:SER:BAUD?");
   }
 
   /* @brief Function to change the baud rate for the device
@@ -461,8 +471,8 @@ public:
     for (size_t i = 0; i < gpsdo_baud.size(); ++i)
       if (proposed == gpsdo_baud[i])
       {
-        write("SYST:COMM:SER:BAUD");
-        eat();
+        comm->write("SYST:COMM:SER:BAUD");
+        comm->eat();
         break;
       }
   }
@@ -474,7 +484,7 @@ public:
    */
   std::string serv()
   {
-    return query("SERV?");
+    return comm->query("SERV?");
   }
 
   /* @brief Function to set the course Dac which controls the EFC. Values should
@@ -488,8 +498,8 @@ public:
   {
     if (val <= 255)
     {
-      write("SERV:COARSD " + std::to_string(val));
-      eat();
+      comm->write("SERV:COARSD " + std::to_string(val));
+      comm->eat();
     }
   }
 
@@ -509,8 +519,8 @@ public:
   {
     if (value >= 0.0 && value <= 500.0)
     {
-      write("SERV:EFCS " + std::to_string(value));
-      eat();
+      comm->write("SERV:EFCS " + std::to_string(value));
+      comm->eat();
     }
   }
 
@@ -523,8 +533,8 @@ public:
   {
     if (value >= 0.0 && value <= 4000.0)
     {
-      write("SERV:EFCD " + std::to_string(value));
-      eat();
+      comm->write("SERV:EFCD " + std::to_string(value));
+      comm->eat();
     }
   }
 
@@ -537,8 +547,8 @@ public:
   {
     if (value >= -4000.0 && value <= 4000.0)
     {
-      write("SERV:TEMPCO " + std::to_string(value));
-      eat();
+      comm->write("SERV:TEMPCO " + std::to_string(value));
+      comm->eat();
     }
   }
 
@@ -551,8 +561,8 @@ public:
   {
     if (value >= -10.0 && value <= 10.0)
     {
-      write("SERV:AGING " + std::to_string(value));
-      eat();
+      comm->write("SERV:AGING " + std::to_string(value));
+      comm->eat();
     }
   }
 
@@ -568,8 +578,8 @@ public:
   {
     if (value >= -100.0 && value <= 100.0)
     {
-      write("SERV:PHASECO " + std::to_string(value));
-      eat();
+      comm->write("SERV:PHASECO " + std::to_string(value));
+      comm->eat();
     }
   }
 
@@ -581,7 +591,7 @@ public:
    */
   std::string serv_1pps()
   {
-    return query("SERV:1PPS?");
+    return comm->query("SERV:1PPS?");
   }
 
   /* @brief Function to set the GPSDO's offset to UTC in 16.7ns incremnnts
@@ -590,8 +600,8 @@ public:
    */
   void serv_1pps(int offset)
   {
-    write("SERV:1PPS " + std::to_string(offset));
-    eat();
+    comm->write("SERV:1PPS " + std::to_string(offset));
+    comm->eat();
   }
 
   /* @brief Function to set the frequency at which a debug trace is produced
@@ -606,8 +616,8 @@ public:
    */
   void serv_trac(size_t freq)
   {
-    write("SERV:TRAC " + std::to_string(freq));
-    eat();
+    comm->write("SERV:TRAC " + std::to_string(freq));
+    comm->eat();
   }
 };
 

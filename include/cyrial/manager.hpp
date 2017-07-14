@@ -1,5 +1,5 @@
-#ifndef CYRIAL_SERIAL_HPP
-#define CYRIAL_SERIAL_HPP
+#ifndef CYRIAL_MANAGER_HPP
+#define CYRIAL_MANAGER_HPP
 
 #include <vector>
 #include <string>
@@ -8,20 +8,20 @@
 
 #include <Python.h>
 
-#include "serial_device.hpp"
+#include "interface.hpp"
 
 namespace cyrial
 {
 
-/* @class serial
- * @brief Class to represent a serial communication interface
+/* @class manager
+ * @brief Class to represent a communication interface
  *
  * Several objects exist in the Python interpreter space as an artifact of not
  * being able to successfully call resource methods otherwise. If possible it
  * would be more consistent to have everything exist as a PyObject and to use
  * the PyObject_* interfaces for all operations.
  */
-class serial
+class manager
 {
   bool finalize;
 
@@ -31,10 +31,10 @@ class serial
   PyObject* py_resource_manager;
   PyObject* py_device_list;
 
-  std::vector<std::shared_ptr<serial_device>> device;
+  std::vector<std::shared_ptr<interface>> port;
 
 public:
-  serial()
+  manager()
   {
     Py_Initialize();
     finalize = true;
@@ -96,12 +96,12 @@ public:
 
       PyObject* py_device = PyList_GetItem(py_device_list, i);
 
-      device.push_back(std::make_shared<serial_device>(i, py_device, py_context,
+      port.push_back(std::make_shared<interface>(i, py_device, py_context,
                                                                       py_main));
     }
   }
 
-  serial(PyObject* py_mn, PyObject* py_cxt=NULL)
+  manager(PyObject* py_mn, PyObject* py_cxt=NULL)
     : py_main(py_mn), py_context(py_cxt)
   {
     finalize = false;
@@ -159,7 +159,7 @@ public:
 
       PyObject* py_device = PyList_GetItem(py_device_list, i);
 
-      device.push_back(std::make_shared<serial_device>(i, py_device, py_context,
+      port.push_back(std::make_shared<interface>(i, py_device, py_context,
                                                                       py_main));
     }
   }
@@ -170,19 +170,19 @@ public:
    */
   size_t num_dev()
   {
-    return device.size();
+    return port.size();
   }
 
-  /* @brief Function to return a shared_ptr to a connected device
+  /* @brief Function to return a shared_ptr to a connected port
    *
-   * @return shared_ptr Pointer to a connected device
+   * @return shared_ptr Pointer to a connected port
    */
-  std::shared_ptr<serial_device> dev(size_t number)
+  std::shared_ptr<interface> dev(size_t number)
   {
-    return device[number];
+    return port[number];
   }
 
-  ~serial()
+  ~manager()
   {
     if (finalize)
       Py_Finalize();
@@ -191,4 +191,4 @@ public:
 
 } // namespace cyrial
 
-#endif // CYRIAL_SERIAL_HPP
+#endif // CYRIAL_MANAGER_HPP

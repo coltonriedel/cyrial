@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../serial_device.hpp"
+#include "../interface.hpp"
 
 namespace cyrial
 {
@@ -12,9 +12,20 @@ namespace cyrial
  *
  * @brief Class to represent a generic device which supports the SCPI protocol
  */
-class scpi_device : public serial_device
+class scpi_device
 {
+protected:
+  std::shared_ptr<interface> comm;
+
 public:
+  /* @brief Constructor for scpi device
+   *
+   * @param A shared_ptr to a communication interface
+   */
+  scpi_device(std::shared_ptr<interface> port)
+    : comm(port)
+  { }
+
   /* @brief Function to retreive identifying information about the device
    *
    * Format:
@@ -24,7 +35,7 @@ public:
    */
   std::string idn()
   {
-    return query("*IDN?");
+    return comm->query("*IDN?");
   }
 };
 

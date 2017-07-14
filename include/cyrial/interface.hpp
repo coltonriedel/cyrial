@@ -1,5 +1,5 @@
-#ifndef CYRIAL_SERIAL_DEVICE_HPP
-#define CYRIAL_SERIAL_DEVICE_HPP
+#ifndef CYRIAL_INTERFACE_HPP
+#define CYRIAL_INTERFACE_HPP
 
 #include <array>
 #include <string>
@@ -17,9 +17,9 @@ std::array<size_t, 31> baud_rates{ 50,      75,      110,     134,     150,
                                    2000000, 2500000, 3000000, 3500000, 4000000,
                                    0 };
 
-/* @class serial_device
+/* @class interface
  *
- * @brief Class to represent a generic device which supports serial
+ * @brief Class to represent a interface which supports serial
  *        communication
  *
  * Several objects exist in the Python interpreter space as an artifact of not
@@ -27,7 +27,7 @@ std::array<size_t, 31> baud_rates{ 50,      75,      110,     134,     150,
  * would be more consistent to have everything exist as a PyObject and to use
  * the PyObject_* interfaces for all operations.
  */
-class serial_device
+class interface
 {
   Py_ssize_t idx;
   Py_ssize_t timeout;
@@ -41,14 +41,14 @@ class serial_device
   PyObject* py_main;
 
 public:
-  /* @brief Constructor for serial_device
+  /* @brief Constructor for interface
    *
-   * @param i The index of the device in the serial class' storage
+   * @param i The index of the device in the manager class' storage
    * @param py_dev PyObject pointer to the resource/device
    * @param py_cxt PyObject pointer to the context of the Python Interpreter
    * @param py_mn  PyObject pointer to the main module
    */
-  serial_device(Py_ssize_t i, PyObject* py_dev, PyObject* py_cxt,
+  interface(Py_ssize_t i, PyObject* py_dev, PyObject* py_cxt,
       PyObject* py_mn)
     : idx(i), py_device(py_dev), py_context(py_cxt), py_main(py_mn)
   {
@@ -79,7 +79,7 @@ public:
     location = PyString_AsString(py_dev_loc);
   }
 
-  /* @brief Function to return the index of the device in the serial class'
+  /* @brief Function to return the index of the device in the manager class'
    *        storage
    *
    * @return The index
@@ -153,7 +153,7 @@ public:
     PyRun_SimpleString(command.c_str());
   }
 
-  /* @brief Function to write serial commands to device
+  /* @brief Function to write commands to device
    *
    * @param cmd Command to send to device
    */
@@ -165,7 +165,7 @@ public:
     PyRun_SimpleString(command.c_str());
   }
 
-  /* @brief Function to read raw data from serial buffer of device
+  /* @brief Function to read raw data from buffer of device
    *
    * @return String containing raw device buffer contents
    */
@@ -173,8 +173,8 @@ public:
   {
     std::string temp = "";
     std::string response;
-    std::string command = "temp = c_dev[" + std::to_string(idx)
-                                                      + "].read_raw().rstrip()";
+    std::string command = "temp = repr(c_dev[" + std::to_string(idx)
+                                                        + "].read_raw())[1:-1]";
 
     PyObject* py_resp = PyRun_String(command.c_str(), Py_single_input,
                                      py_context, py_context);
@@ -197,7 +197,7 @@ public:
     return response;
   }
 
-  /* @brief Function to read from serial buffer of device
+  /* @brief Function to read from buffer of device
    *
    * @return String containing raw device buffer contents
    */
@@ -229,7 +229,20 @@ public:
     return response;
   }
 
-  /* @brief Convenience function to write a serial command and read the result
+  /* @brief Convenience function to write a command and read the result without
+   *        attempting to decode
+   *
+   * @param cmd Command to send to device
+   * @return String containing raw device buffer contents
+   */
+  std::string query_raw(std::string command)
+  {
+    write_raw(command);
+
+    return read_raw();
+  }
+
+  /* @brief Convenience function to write a command and read the result
    *
    * @param cmd Command to send to device
    * @return String containing device buffer contents
@@ -241,9 +254,8 @@ public:
     return read();
   }
 
-  /* @brief Function to eat lines off the serial buffer of the device, useful
-   *        when issuing commands which will be echoed but do not produce a
-   *        response
+  /* @brief Function to eat lines off the buffer of the device, useful when
+   *        issuing commands which will be echoed but do not produce a response
    *
    * TODO: could be much more intelligent
    *
@@ -261,4 +273,4 @@ public:
 
 } // namespace cyrial
 
-#endif // CYRIAL_SERIAL_DEVICE_HPP
+#endif // CYRIAL_INTERFACE_HPP
