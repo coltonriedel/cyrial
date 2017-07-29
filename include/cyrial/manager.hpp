@@ -144,6 +144,9 @@ public:
     PyObject* py_rm_list_res = PyObject_GetAttrString(py_resource_manager,
                                                       "list_resources");
 
+    // TODO: Connecting to devices should be pulled out into a seperate fucntion
+    // so that it can be performed selectively
+
     PyObject* py_available_list = PyObject_CallFunction(py_rm_list_res, NULL);
     Py_ssize_t py_available_devices = PyTuple_Size(py_available_list);
 

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "scpi.hpp"
+#include "nmea.hpp"
 
 namespace cyrial
 {
@@ -31,7 +32,7 @@ std::array<size_t, 5> gpsdo_baud{ 9600, 19200, 38400, 57600, 115200 };
  * also be added - note that NEMA messages start with '$', and command
  * responses are wrapped in an echo of the command and a newline
  */
-class gpsdo_device : public scpi_device
+class gpsdo_device : public scpi_device, public nmea_device
 {
 public:
   /* @brief Constructor for gpsdo device

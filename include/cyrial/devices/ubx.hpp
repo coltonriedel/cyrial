@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../interface.hpp"
+#include "nmea.hpp"
 
 namespace cyrial
 {
@@ -14,7 +15,7 @@ namespace cyrial
  * @brief Class to represent a generic device which supports the UBX (u-blox)
  *        communication protocol
  */
-class ubx_device
+class ubx_device : public nmea_device
 {
   std::shared_ptr<interface> comm;
 
