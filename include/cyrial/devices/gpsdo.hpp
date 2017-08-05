@@ -40,7 +40,7 @@ public:
    * @param A shared_ptr to a communication interface
    */
   gpsdo_device(std::shared_ptr<interface> port)
-    : scpi_device(port)
+    : scpi_device(port), nmea_device(port), base_device(port)
   {
     comm->set_timeout(100);
     comm->set_baud(115200);

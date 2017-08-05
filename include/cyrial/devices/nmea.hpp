@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "base.hpp"
+
 namespace cyrial
 {
 
@@ -11,7 +13,7 @@ namespace cyrial
  * @brief Class to represent a generic device which supports sending NMEA
  *        messages
  */
-class nmea_device
+class nmea_device : virtual public base_device
 {
 protected:
   std::vector<std::string> messages;
@@ -20,7 +22,7 @@ protected:
   {
     std::string result;
 
-    if (input[0] == "$")
+    if (input[0] == '$')
     {
       messages.push_back(input);
 
@@ -30,7 +32,7 @@ protected:
       // It may be required that we split strings on newlines, because I'm not
       // certain if there will be a situation where the sought reply will be
       // at the tail of the string
-      while (result[0] == "$")
+      while (result[0] == '$')
       {
         messages.push_back(input);
 
@@ -42,6 +44,14 @@ protected:
   }
 
 public:
+  /* @brief Constructor for nmea device
+   *
+   * @param A shared_ptr to a communication interface
+   */
+  nmea_device(std::shared_ptr<interface> port)
+    : base_device(port)
+  { }
+
   std::string get_NMEA()
   {
     std::string result = "";

@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../interface.hpp"
+#include "base.hpp"
 
 namespace cyrial
 {
@@ -12,18 +12,15 @@ namespace cyrial
  *
  * @brief Class to represent a generic device which supports the SCPI protocol
  */
-class scpi_device
+class scpi_device : virtual public base_device
 {
-protected:
-  std::shared_ptr<interface> comm;
-
 public:
   /* @brief Constructor for scpi device
    *
    * @param A shared_ptr to a communication interface
    */
   scpi_device(std::shared_ptr<interface> port)
-    : comm(port)
+    : base_device(port)
   { }
 
   /* @brief Function to retreive identifying information about the device

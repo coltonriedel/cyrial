@@ -4,7 +4,6 @@
 #include <array>
 #include <string>
 
-#include "../interface.hpp"
 #include "nmea.hpp"
 
 namespace cyrial
@@ -17,8 +16,6 @@ namespace cyrial
  */
 class ubx_device : public nmea_device
 {
-  std::shared_ptr<interface> comm;
-
   uint8_t s_mu = 0xb5; // μ sync character
   uint8_t s_b  = 0x62; // b sync character
 
@@ -84,7 +81,7 @@ public:
    * @param A shared_ptr to a communication interface
    */
   ubx_device(std::shared_ptr<interface> port)
-    : comm(port)
+    : nmea_device(port), base_device(port)
   {
     comm->set_timeout(100);
     comm->set_baud(9600);
