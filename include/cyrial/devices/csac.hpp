@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../interface.hpp"
+#include "base.hpp"
 
 namespace cyrial
 {
@@ -14,18 +14,15 @@ namespace cyrial
  *
  * @brief Class to represent a CSAC
  */
-class csac_device
+class csac_device : virtual public base_device
 {
-protected:
-  std::shared_ptr<interface> comm;
-
 public:
   /* @brief Constructor for csac device
    *
    * @param A shared_ptr to a communication interface
    */
   csac_device(std::shared_ptr<interface> port)
-    : comm(port)
+    : base_device(port)
   {
     comm->set_baud(57600);
     comm->set_timeout(100);
