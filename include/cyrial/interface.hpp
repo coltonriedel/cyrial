@@ -180,6 +180,38 @@ public:
     return response;
   }
 
+  /* @brief Function to read hex data from buffer of device
+   *
+   * @return String containing hex device buffer contents
+   */
+  std::string read_hex()
+  {
+    std::string temp = "";
+    std::string response;
+    std::string command = "temp = repr(c_dev[" + std::to_string(idx)
+                                          + "].read_raw().encode('hex'))[1:-1]";
+
+    PyObject* py_resp = PyRun_String(command.c_str(), Py_single_input,
+                                     py_context, py_context);
+    PyObject* py_temp = PyObject_GetAttrString(py_main, "temp");
+
+    response = PyString_AsString(PyObject_Str(py_temp));
+
+    do
+    {
+      response += temp;
+
+      py_resp = PyRun_String(command.c_str(), Py_single_input,
+                             py_context, py_context);
+      py_temp = PyObject_GetAttrString(py_main, "temp");
+
+      temp = PyString_AsString(PyObject_Str(py_temp));
+
+    } while (!temp.empty());
+
+    return response;
+  }
+
   /* @brief Function to read from buffer of device
    *
    * @return String containing raw device buffer contents
@@ -223,6 +255,19 @@ public:
     write_raw(command);
 
     return read_raw();
+  }
+
+  /* @brief Convenience function to write a command and read the hex result
+   *        without attempting to decode
+   *
+   * @param cmd Command to send to device
+   * @return String containing hex device buffer contents
+   */
+  std::string query_hex(std::string command)
+  {
+    write_raw(command);
+
+    return read_hex();
   }
 
   /* @brief Convenience function to write a command and read the result
