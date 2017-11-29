@@ -72,6 +72,7 @@ class ubx_device : public nmea_device
       result << "\\x"
         << std::setw(2) << std::setfill('0') << std::hex << (int)msg[i];
 
+    std::cout << result.str() << std::endl;
     return result.str();
   }
 
@@ -83,18 +84,28 @@ public:
   ubx_device(std::shared_ptr<interface> port)
     : nmea_device(port), base_device(port)
   {
-    comm->set_timeout(100);
+    comm->set_timeout(1000);
     comm->set_baud(9600);
   }
 
   // PUBX Messages
 
-  /*
+  /* @brief Function to control the output of NMEA messages on each interface.
+   *        0=off, 1=every epoch
+   *
+   * @param nmea_type A string indicating which message type rate should be
+   *        modified
+   * @param i2c_rate The rate of message transmission on the i2c interface
+   * @param uart_rate The rate of message transmission on the uart interface
+   * @param usb_rate The rate of message transmission on the usb interface
+   * @param spi_rate The rate of message transmission on the spi interface
    */
-  void pubx_rate(std::string nmea_type, size_t rate)
+  void pubx_rate(std::string nmea_type, size_t i2c_rate=0, size_t uart_rate=0,
+      size_t usb_rate=0, size_t spi_rate=0)
   {
-    std::string command = "$PUBX,40," + nmea_type + ",0," + std::to_string(rate)
-      + ",0,0,0,0*";
+    std::string command = "$PUBX,40," + nmea_type + ","
+      + std::to_string(i2c_rate) + "," + std::to_string(uart_rate) + ","
+      + std::to_string(usb_rate) + "," + std::to_string(spi_rate) + ",0,0*";
 
     add_pubx_checksum(command);
 
@@ -102,6 +113,52 @@ public:
   }
 
   // UBX Messages
+
+  /* TODO: Eventually make a general solution
+
+  possibly create a map<map<string>>  so I can index ubx[mon][hw] or something
+  and use it as a template parameter where arguments are handled by a variadic
+
+  template <msg_class m_class, msg_id m_id>
+  std::string ubx_message(size_t m_length)
+  {
+
+  }
+  template <msg_class m_class, msg_id m_id, typename Arg>
+  std::string ubx_message(size_t m_length, Arg arg)
+  {
+
+  }
+
+  template <msg_class m_class, msg_id m_id, typename... Args>
+  std::string ubx_message(size_t m_length, Args... args)
+  {
+
+  }
+  */
+
+  /* UBX-MON
+   *
+   * Monitoring messages, i.e. communication status, CPU load, stack usage, I/O
+   * subsystem statistics.
+   */
+
+  /* @brief Function to get the results of the UBX-MON-HW command
+   *
+   * @return The output of the UBX-MON-HW command
+   */
+  std::string ubx_mon_hw()
+  {
+    uint8_t length_a = 0x00;  // UBX_MON_HW passes no parameters
+    uint8_t length_b = 0x00;  //    so the length is always 0
+
+    std::vector<uint8_t> packet = { s_mu, s_b, c_mon, 0x09 /* ID */,
+                                    length_a, length_b };
+
+    add_ubx_checksum(packet);
+
+    return comm->query_hex(escape_ubx_message(packet));
+  }
 
   /* @brief Function to get the results of the UBX-MON-VER command
    *
